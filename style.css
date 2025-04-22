@@ -1,0 +1,102 @@
+
+header h1 {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 3rem;
+    color: #222;
+}
+
+
+h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 3rem;
+    color: #222;
+}
+
+.menu-logo {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+}
+.menu-logo img {
+    width: 100px;
+    height: auto;
+}
+.menu-logo span {
+    font-size: 20px;
+    font-weight: bold;
+    color: #333;
+}
+
+
+.mapa iframe {
+    width: 100%;
+    height: 400px;
+}
+
+
+
+.pie-pagina img{
+    width: 100%;
+}
+
+.pie-pagina {
+    background-color:rgba(32, 181, 201, 0.505);
+    
+    .grupo-1 {
+    width: 100%;
+    max-width: 1200px;
+    min-height: 150px;
+    margin: auto;
+    display: grid;
+    background-color: rgba(32, 181, 201, 0.505);
+    grid-template-columns: repeat(3, 1fr);
+    grid-gap: 50px;
+    padding: 45px 0;
+    }
+    
+    .grupo-2 {
+    background-color: rgba(102, 151, 241, 0.932);
+    padding: 15px 10px;
+    text-align: center;
+    color: rgba(0, 0, 0, 0.932);
+    }
+    .pie-pagina .grupo-2 small {
+    font-size: 15px;
+    }
+    }
+    
+
+
+
+@media (max-width: 768px) {
+    .d-flex {
+    flex-direction: column;
+    text-align: center;
+    }
+    img {
+        width: 80%;
+        margin: 0 auto;
+    }
+
+    .pie-pagina .grupo-1 {
+    grid-template-columns: 1fr;
+    text-align: center;
+    }
+}
+@media (max-width: 320px) {
+    .paisajismo .container, .bloque .container {
+    padding: 1rem;
+    }
+    .pie-pagina {
+    padding: 15px 10px;
+    }
+    .pie-pagina .grupo-1 .box h2 {
+    font-size: 1.2rem;
+    }
+    .pie-pagina .grupo-1 .box p {
+    font-size: 0.8rem;
+    }
+}
