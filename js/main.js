@@ -77,17 +77,18 @@ const sacarTurno = (e) => {
     }
 
 
-    const esTurnoDuplicado = (nuevoTurno) => {
-        return turnos.some(
-            (t) =>
-            t.nombre.trim().toLowerCase() === nuevoTurno.nombre.trim().toLowerCase() &&
-            t.dni === nuevoTurno.dni &&
-            t.fecha === nuevoTurno.fecha &&
-            t.hora === nuevoTurno.hora &&
-            t.especialidad === nuevoTurno.especialidad 
-            
-        );
-    };
+    const duplicado = turnos.some(turno =>
+        turno.nombre.toLowerCase() === nombre.toLowerCase() &&
+        turno.dni === dni &&
+        turno.fecha === fecha &&
+        turno.hora === hora &&
+        turno.especialidad === especialidad
+    );
+
+    if (duplicado) {
+        mostrarMensaje("Ya existe un turno igual para ese paciente, fecha, hora y especialidad", "error");
+        return;
+    }
 
     if (turnoEditandoId) {
         const index = turnos.findIndex((t) => t.id === turnoEditandoId);
