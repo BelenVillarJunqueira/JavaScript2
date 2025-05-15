@@ -1,4 +1,13 @@
-let turnos = JSON.parse(localStorage.getItem("turnos")) || [];
+import {
+    mostrarMensaje,
+    guardarStorage,
+    cargarStorage,
+    eliminarTurno,
+    atenderTurno,
+    vaciarTurnos
+} from './turnos.js';
+
+let turnos = cargarStorage();
 let turnoEditandoId = null;
 
 const renderTurnos = () => {
@@ -11,31 +20,46 @@ const renderTurnos = () => {
             <strong>${turno.nombre}</strong> - ${turno.especialidad}<br>
             DNI: ${turno.dni} | Edad: ${turno.edad}<br>
             Fecha: ${turno.fecha} | Hora: ${turno.hora}<br>
-            <button class="btn btn-danger btn-sm" onclick="eliminarTurno('${turno.id}')">Eliminar</button>
         `;
+
+        const btnEliminar = document.createElement("button");
+        btnEliminar.innerText = "Eliminar";
+        btnEliminar.classList.add("btn", "btn-danger", "btn-sm");
+        btnEliminar.addEventListener("click", () => {
+            turnos = eliminarTurno(turnos, turno.id);
+            renderTurnos();
+            mostrarMensaje("Turno eliminado", "success");
+        });
 
         const btnEditar = document.createElement("button");
         btnEditar.innerText = "Editar";
         btnEditar.classList.add("btn", "btn-sm", "btn-warning", "ms-2");
         btnEditar.addEventListener("click", () => editarTurno(turno.id));
+
+        li.appendChild(btnEliminar);
         li.appendChild(btnEditar);
         lista.appendChild(li);
     });
 };
 
-const mostrarMensaje = (mensaje, tipo = "warning") => {
-    const divMensaje = document.getElementById("mensaje");
-    divMensaje.textContent = mensaje;
-    divMensaje.className = `alert alert-${tipo}`;
-    divMensaje.style.display = "block";
-    setTimeout(() => divMensaje.style.display = "none", 3000);
-};
+const cargarEspecialidades = async () => {
+    try {
+        const res = await fetch('./js/data/especialidades.json');
+        if (!res.ok) throw new Error("No se pudieron cargar las especialidades");
 
-const guardarStorage = () => {
-    localStorage.setItem("turnos", JSON.stringify(turnos));
+        const especialidades = await res.json();
+        const select = document.getElementById("especialidad");
+        select.innerHTML = '<option value="">Seleccionar especialidad</option>';
+        especialidades.forEach(especialidad => {
+            const option = document.createElement("option");
+            option.value = especialidad;
+            option.textContent = especialidad;
+            select.appendChild(option);
+        });
+    } catch (error) {
+        mostrarMensaje("⚠️ Error al cargar especialidades: " + error.message, "danger");
+    }
 };
-
-const validarNumeroPositivo = (valor) => Number.isInteger(valor) && valor > 0;
 
 const editarTurno = (id) => {
     const turno = turnos.find(t => t.id === id);
@@ -50,7 +74,7 @@ const editarTurno = (id) => {
     document.getElementById("fecha").value = turno.fecha;
     document.getElementById("hora").value = turno.hora;
 
-    editarTurno(id);
+    turnoEditandoId = id;
     mostrarMensaje("Modificá los datos y vuelve a guardar el turno.", "info");
 };
 
@@ -67,15 +91,9 @@ const sacarTurno = (e) => {
     const hora = document.getElementById("hora").value;
 
     if (!nombre || !edad || !dni || !direccion || !telefono || !especialidad || !fecha || !hora) {
-        mostrarMensaje("Todos los campos son obligatorios");
+        mostrarMensaje("Todos los campos son obligatorios", "danger");
         return;
     }
-
-    if (edad <= 0 || dni <= 0) {
-        mostrarMensaje("Edad y DNI no son validos");
-        return;
-    }
-
 
     const duplicado = turnos.some(turno =>
         turno.nombre.toLowerCase() === nombre.toLowerCase() &&
@@ -86,74 +104,46 @@ const sacarTurno = (e) => {
     );
 
     if (duplicado) {
-        mostrarMensaje("Ya existe un turno igual para ese paciente, fecha, hora y especialidad", "error");
+        mostrarMensaje("Ya existe un turno igual para ese paciente", "danger");
         return;
     }
 
     if (turnoEditandoId) {
-        const index = turnos.findIndex((t) => t.id === turnoEditandoId);
-        if (index !== 1) {
+        const index = turnos.findIndex(t => t.id === turnoEditandoId);
+        if (index !== -1) {
             turnos[index] = {
                 id: turnoEditandoId,
-                nombre,
-                edad,
-                dni,
-                direccion,
-                telefono,
-                especialidad,
-                fecha,
-                hora,
+                nombre, edad, dni, direccion, telefono, especialidad, fecha, hora
             };
+            mostrarMensaje("Turno editado correctamente", "success");
         }
         turnoEditandoId = null;
-    } else {}
-    const nuevoTurno = {
-        id: crypto.randomUUID(),
-        nombre,
-        edad,
-        dni,
-        direccion,
-        telefono,
-        especialidad,
-        fecha,
-        hora
-    };
+    } else {
+        const nuevoTurno = {
+            id: crypto.randomUUID(),
+            nombre, edad, dni, direccion, telefono, especialidad, fecha, hora
+        };
+        turnos.push(nuevoTurno);
+        mostrarMensaje("Turno guardado correctamente", "success");
+    }
 
-    turnos.push(nuevoTurno);
-    guardarStorage();
+    guardarStorage(turnos);
     renderTurnos();
     document.getElementById("formTurno").reset();
-    mostrarMensaje("Turno guardado correctamente", "success");
-};
-
-
-const eliminarTurno = (id) => {
-    turnos = turnos.filter(turno => turno.id !== id);
-    guardarStorage();
-    renderTurnos();
-    mostrarMensaje("Turno eliminado", "success");
-};
-
-const atenderTurno = () => {
-    if (turnos.length === 0) return;
-    turnos.shift();
-    guardarStorage();
-    renderTurnos();
-    mostrarMensaje("Turno atendido", "success");
-};
-
-const vaciarTurnos = () => {
-    turnos = [];
-    localStorage.removeItem("turnos");
-    renderTurnos();
-    mostrarMensaje("Todos los turnos fueron eliminados", "danger");
 };
 
 document.addEventListener("DOMContentLoaded", () => {
     renderTurnos();
     document.getElementById("formTurno").addEventListener("submit", sacarTurno);
-    document.getElementById("atenderTurno").addEventListener("click", atenderTurno);
-    document.getElementById("vaciarTurnos").addEventListener("click", vaciarTurnos);
+    document.getElementById("atenderTurno").addEventListener("click", () => {
+        if (turnos.length === 0) return;
+        turnos = atenderTurno(turnos);
+        renderTurnos();
+        mostrarMensaje("Turno atendido", "success");
+    });
+    document.getElementById("vaciarTurnos").addEventListener("click", () => {
+        turnos = vaciarTurnos();
+        renderTurnos();
+        mostrarMensaje("Todos los turnos fueron eliminados", "danger");
+    });
 });
-
-renderTurnos();
